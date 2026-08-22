@@ -16,6 +16,7 @@
    ─ أين أعدّل باقي المحتوى؟ | Where to edit the rest ─
    • الأسئلة الشائعة .......... ابحث عن  FAQ_EN  و  FAQ_AR
    • صفحات الخصوصية/الشروط .... ابحث عن  LEGAL_EN  و  LEGAL_AR
+   • روابط الدفع (Stripe) ..... ابحث عن  paymentLinks  داخل لوحة التحكم SETTINGS
    • قسم الاقتراحات .......... ابحث عن  id="suggest"  (النصوص العربية عند  sug_title )
    • عناوين الخدمات ........... ابحث عن  <section id="services"
    • كل النصوص العربية ........ ابحث عن  DYN_AR
@@ -388,6 +389,8 @@ html[dir="rtl"] .select{background-position:left 14px center}
 .badge{display:inline-block;padding:3px 10px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;font-family:var(--font-display)}
 .badge.paid{background:rgba(18,160,94,.14);color:var(--green-700)}
 .badge.new{background:rgba(37,99,235,.12);color:var(--blue)}
+.badge.pending{background:rgba(245,158,11,.14);color:#B45309}
+.ticket-ok .ok-ic.ok-ic-amber{background:rgba(245,158,11,.14);color:#B45309}
 
 /* ---------- Legal modal ---------- */
 .legal .modal{max-width:680px}
@@ -980,14 +983,14 @@ const SETTINGS = {
 
   /* --- معلومات التواصل | Contact info --------------------------------------
      رقم الهاتف كما يظهر للزائر | Phone number shown to visitors */
-  phoneDisplay : '+971 50 123 4567',
+  phoneDisplay : '+971 50 7060 878',
   /* نفس الرقم لكن بدون مسافات أو رموز (للاتصال المباشر) | Same number, digits only */
-  phoneDial    : '+971501234567',
+  phoneDial    : '+97150706087',
   /* رقم واتساب: رمز الدولة + الرقم بدون + أو مسافات (971 = الإمارات)
      WhatsApp number: country code + number, no + or spaces (971 = UAE) */
-  whatsapp     : '971501234567',
+  whatsapp     : '97150706087',
   /* البريد الإلكتروني | Email address */
-  email        : 'support@msaco.ae',
+  email        : 'support@msacotech.ae',
 
   /* ساعات العمل | Business hours  (en = إنجليزي ، ar = عربي) */
   hours   : { en:'Mon – Sat: 9:00 AM – 7:00 PM', ar:'الإثنين – السبت: 9:00 ص – 7:00 م' },
@@ -1006,7 +1009,38 @@ const SETTINGS = {
   onsite   : { normal:250, priority:400, emergency:600 },  // الزيارة الميدانية | On-site
   consult  : 300,        // الاستشارة | Consultation
   /* رسوم الانتقال حسب الإمارة | Travel charge per Emirate */
-  travel   : { 'Dubai':0,'Sharjah':60,'Ajman':80,'Abu Dhabi':120,'Al Ain':150,'Ras Al Khaimah':160,'Fujairah':180,'Umm Al Quwain':100 }
+  travel   : { 'Dubai':0,'Sharjah':60,'Ajman':80,'Abu Dhabi':120,'Al Ain':150,'Ras Al Khaimah':160,'Fujairah':180,'Umm Al Quwain':100 },
+
+  /* --- روابط الدفع من Stripe | Stripe payment links -------------------------
+     ▸ أنشئ رابط دفع (Payment Link) في لوحة Stripe لكل بند بالسعر الثابت،
+       ثم الصق الرابط هنا بين علامتَي التنصيص ' '.
+     ▸ عند وصول العميل لخطوة الدفع، يفتح الموقع الرابط المناسب تلقائيًا.
+     ▸ اترك الرابط فارغًا '' إذا لم تُنشئه بعد (سيُطلب من العميل التواصل معكم).
+
+       Create a fixed-price Payment Link in your Stripe dashboard for each item,
+       then paste the link here between the quotes ' '. The site opens the right
+       link automatically at checkout. Leave '' empty until you create it.
+
+     ملاحظة مهمة | Important: رابط Stripe مبلغه ثابت. اجعل سعر كل رابط في Stripe
+     مطابقًا للسعر الظاهر في الموقع لنفس البند (شامل الضريبة إن رغبت).
+     For on-site, travel differs per Emirate — either add it inside the Stripe
+     link price, create extra links, or collect travel on arrival. */
+  paymentLinks : {
+    // خطط الصيانة الشهرية | Monthly maintenance plans
+    plan_basic       : '',   // خطة Basic  (299)
+    plan_business    : '',   // خطة Business (499)
+    plan_premium     : '',   // خطة Premium (799)
+    // الدعم عن بُعد | Remote support  (عادي / أولوية / طارئ)
+    remote_normal    : 'https://buy.stripe.com/00w7sK2Fl5MIajagwufjG01',
+    remote_priority  : '',
+    remote_emergency : '',
+    // الزيارة الميدانية | On-site visit  (عادي / أولوية / طارئ)
+    onsite_normal    : '',
+    onsite_priority  : '',
+    onsite_emergency : '',
+    // الاستشارة | Consultation
+    consult          : ''
+  }
 };
 /* ما بعد هذا السطر خاص بالبرمجة — لا حاجة لتعديله | Below this line is code — no need to edit */
 
@@ -1064,7 +1098,14 @@ const DYN_EN = {
   sum_travel:'Travel Charge', sum_vat:'VAT (5%)', sum_total:'Total',
   agree:'I agree to the Service Terms & Conditions.',
   pay_line:'Choose a payment method — card details are never stored on this site.',
-  back:'Back', next:'Continue', pay_btn:'Pay & Create Support Request',
+  back:'Back', next:'Continue', pay_btn:'Proceed to Secure Payment',
+  pay_secure:'You will be taken to our secure Stripe payment page to complete your payment.',
+  pay_nolink:'Online payment for this service is not available yet — please contact us to complete your payment.',
+  plan_monthly:'Monthly Plan', plan_note:'This is a monthly subscription. You can cancel anytime.',
+  plan_basic:'Basic Plan', plan_business:'Business Plan', plan_premium:'Premium Plan',
+  ok_pending_title:'Almost done!', ok_pending_sub:'Complete your payment on the secure page that just opened.',
+  ok_awaiting:'Awaiting Payment', ok_openpay:'Open Payment Page',
+  ok_after:'Once paid, keep your reference number and send it to us on WhatsApp to confirm.',
   svc_remote:'Remote Support', svc_onsite:'On-Site Support', svc_consult:'IT & POS Consultation',
   ok_title:'Payment Successful', ok_sub:'Your support request has been created.',
   ok_ticket:'Ticket Number', ok_status:'Status', ok_payment:'Payment', ok_paid:'Paid', ok_new:'New',
@@ -1092,7 +1133,14 @@ const DYN_AR = {
   sum_travel:'رسوم الانتقال', sum_vat:'ضريبة القيمة المضافة (5%)', sum_total:'الإجمالي',
   agree:'أوافق على شروط وأحكام الخدمة.',
   pay_line:'اختر وسيلة الدفع — لا يتم تخزين بيانات البطاقة على هذا الموقع.',
-  back:'رجوع', next:'متابعة', pay_btn:'ادفع وأنشئ طلب الدعم',
+  back:'رجوع', next:'متابعة', pay_btn:'المتابعة إلى الدفع الآمن',
+  pay_secure:'سيتم تحويلك إلى صفحة الدفع الآمنة (Stripe) لإتمام العملية.',
+  pay_nolink:'الدفع الإلكتروني لهذه الخدمة غير متاح حاليًا — يرجى التواصل معنا لإتمام الدفع.',
+  plan_monthly:'خطة شهرية', plan_note:'هذا اشتراك شهري. يمكنك الإلغاء في أي وقت.',
+  plan_basic:'خطة Basic', plan_business:'خطة Business', plan_premium:'خطة Premium',
+  ok_pending_title:'خطوة أخيرة!', ok_pending_sub:'أكمل الدفع في الصفحة الآمنة التي فُتحت للتو.',
+  ok_awaiting:'بانتظار الدفع', ok_openpay:'فتح صفحة الدفع',
+  ok_after:'بعد الدفع، احتفظ برقم المرجع وأرسله إلينا عبر واتساب للتأكيد.',
   svc_remote:'دعم عن بُعد', svc_onsite:'دعم ميداني', svc_consult:'استشارة IT و POS',
   ok_title:'تم الدفع بنجاح', ok_sub:'تم إنشاء طلب الدعم الخاص بك.',
   ok_ticket:'رقم التذكرة', ok_status:'الحالة', ok_payment:'الدفع', ok_paid:'مدفوع', ok_new:'جديد',
@@ -1336,14 +1384,28 @@ const mBody=document.getElementById('modalBody'), mFoot=document.getElementById(
 let step=1, req={};
 
 function openSupport(pre={}){
-  req={ isConsult:false, supportType:'remote', priority:'normal',
+  req={ isConsult:false, isPlan:false, plan:'', supportType:'remote', priority:'normal',
         biz:'',cat:'',desc:'', name:'',company:'',mobile:'',whatsapp:'',email:'',
         emirate:'Dubai',area:'',address:'', agree:false, consultMode:'online' };
   Object.assign(req,{supportType:pre.type&&pre.type!=='consult'?pre.type:req.supportType,
     priority:pre.prio||req.priority, biz:pre.biz||'', cat:pre.cat||'', desc:pre.desc||''});
   if(pre.type==='consult'){req.isConsult=true;}
   if(pre.cat) req.cat=pre.cat;
+  // خطط الصيانة الشهرية | monthly maintenance plans
+  if(pre.cat && /Support Plan/i.test(pre.cat)){
+    req.isPlan=true; req.isConsult=false; req.supportType='remote';
+    req.plan = /Basic/i.test(pre.cat)?'basic' : /Premium/i.test(pre.cat)?'premium' : 'business';
+  }
   step=1; modal.classList.add('show'); document.body.style.overflow='hidden'; renderStep();
+}
+
+/* يختار رابط الدفع المناسب من لوحة التحكم | picks the right Stripe link */
+function paymentLinkFor(){
+  let key;
+  if(req.isPlan)         key='plan_'+req.plan;
+  else if(req.isConsult) key='consult';
+  else                   key=req.supportType+'_'+req.priority;   // remote_normal, onsite_priority, ...
+  return (SETTINGS.paymentLinks&&SETTINGS.paymentLinks[key])||'';
 }
 function closeSupport(){modal.classList.remove('show');document.body.style.overflow='';}
 document.getElementById('mClose').addEventListener('click',closeSupport);
@@ -1356,10 +1418,11 @@ document.querySelectorAll('[data-open-support]').forEach(b=>b.addEventListener('
 
 function calc(){
   let fee,label;
-  if(req.isConsult){fee=CONFIG.consult;label=t('svc_consult');}
+  if(req.isPlan){fee=CONFIG.plans[req.plan];label=t('plan_'+req.plan);}
+  else if(req.isConsult){fee=CONFIG.consult;label=t('svc_consult');}
   else if(req.supportType==='onsite'){fee=CONFIG.onsite[req.priority];label=t('svc_onsite');}
   else {fee=CONFIG.remote[req.priority];label=t('svc_remote');}
-  const onSite = req.supportType==='onsite';
+  const onSite = !req.isPlan && !req.isConsult && req.supportType==='onsite';
   const travel = onSite ? (CONFIG.travel[req.emirate]||0) : 0;
   const sub=fee+travel; const vat=Math.round(sub*CONFIG.vat*100)/100; const total=sub+vat;
   return {fee,travel,vat,total,label,onSite};
@@ -1389,6 +1452,18 @@ function renderStep(){
       </div>`;
   }
   else if(step===2){
+    if(req.isPlan){
+      const pc=calc();
+      mBody.innerHTML=`
+        <div class="step"><div class="step-label">${t('s2_label')}</div><h3>${t('plan_monthly')}</h3>
+          <div class="summary">
+            <div class="sum-row"><span>${t('sum_service')}</span><b>${pc.label}</b></div>
+            <div class="sum-row"><span>${t('plan_monthly')}</span><b>${money(pc.fee)} <span style="color:var(--slate);font-weight:500">${t('per_month')}</span></b></div>
+          </div>
+          <p style="color:var(--slate);font-size:.85rem;margin-top:14px">${t('plan_note')}</p>
+        </div>`;
+      renderFoot(); return;
+    }
     mBody.innerHTML=`
       <div class="step"><div class="step-label">${t('s2_label')}</div><h3>${t('s2_h')}</h3>
         <div class="choice-cards" id="typeCards">
@@ -1433,8 +1508,8 @@ function renderStep(){
       <div class="step"><div class="step-label">${t('s4_label')}</div><h3>${t('s4_h')}</h3>
         <div class="summary">
           <div class="sum-row"><span>${t('sum_service')}</span><b>${c.label}</b></div>
-          ${req.isConsult?'':`<div class="sum-row"><span>${t('sum_priority')}</span><b>${t('prio_'+req.priority)}</b></div>`}
-          <div class="sum-row"><span>${t('sum_fee')}</span><b>${money(c.fee)}</b></div>
+          ${(req.isConsult||req.isPlan)?'':`<div class="sum-row"><span>${t('sum_priority')}</span><b>${t('prio_'+req.priority)}</b></div>`}
+          <div class="sum-row"><span>${req.isPlan?t('plan_monthly'):t('sum_fee')}</span><b>${money(c.fee)}</b></div>
           ${c.onSite?`<div class="sum-row"><span>${t('sum_travel')} · ${LANG==='ar'&&AREM[req.emirate]?AREM[req.emirate]:req.emirate}</span><b>${money(c.travel)}</b></div>`:''}
           <div class="sum-row"><span>${t('sum_vat')}</span><b>${money(c.vat)}</b></div>
           <div class="sum-total"><span>${t('sum_total')}</span><b>${money(c.total)}</b></div>
@@ -1448,11 +1523,13 @@ function renderStep(){
   }
   else if(step===5){
     const c=calc();
+    const hasLink=!!paymentLinkFor();
     mBody.innerHTML=`
       <div class="step"><div class="step-label">${t('s5_label')}</div><h3>${t('s5_h')}</h3>
-        <div class="summary"><div class="sum-total" style="border:none;margin:0;padding:0"><span>${t('sum_total')}</span><b>${money(c.total)}</b></div></div>
-        <p style="text-align:center;color:var(--slate);font-size:.85rem;margin:16px 0 4px">${t('pay_line')}</p>
+        <div class="summary"><div class="sum-total" style="border:none;margin:0;padding:0"><span>${t('sum_total')}</span><b>${money(c.total)}${req.isPlan?' <span style=\"color:var(--slate);font-weight:500;font-size:.8rem\">'+t('per_month')+'</span>':''}</b></div></div>
+        <p style="text-align:center;color:var(--slate);font-size:.85rem;margin:16px 0 4px">${t('pay_secure')}</p>
         <div class="pay-methods"><span>💳 Credit Card</span><span>💳 Debit Card</span><span> Apple Pay</span><span>G Pay</span></div>
+        ${hasLink?'':`<p style="text-align:center;color:var(--red);font-size:.82rem;margin-top:12px">${t('pay_nolink')}</p>`}
       </div>`;
   }
   renderFoot();
@@ -1486,28 +1563,36 @@ function next(){
 
 function pay(){
   const c=calc();
+  const link=paymentLinkFor();
+  if(!link){ alert(t('pay_nolink')); return; }   // no link set yet → tell the user
   const num='MS-2026-'+String(Math.floor(10000+Math.random()*89999));
-  const waTxt=encodeURIComponent(t('wa_msg').replace('{t}',num).replace('{c}',req.isConsult?t('svc_consult'):(req.cat|| (LANG==='ar'?'نظام':'system'))));
+  // open the secure Stripe payment page (user gesture → not blocked)
+  window.open(link,'_blank','noopener');
+  const catTxt=req.isPlan?c.label:(req.isConsult?t('svc_consult'):(req.cat||(LANG==='ar'?'نظام':'system')));
+  const waTxt=encodeURIComponent(t('wa_msg').replace('{t}',num).replace('{c}',catTxt));
   const waLink=`https://wa.me/${CONFIG.whatsapp}?text=${waTxt}`;
   document.getElementById('stepsBar').innerHTML=[1,2,3,4,5].map(()=>'<div class="sdot done"></div>').join('');
   mStepEl.textContent='';
   mBody.innerHTML=`
     <div class="ticket-ok">
-      <div class="ok-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg></div>
-      <h3 style="font-size:1.3rem">${t('ok_title')}</h3>
-      <p style="color:var(--slate);font-size:.92rem;margin-top:4px">${t('ok_sub')}</p>
+      <div class="ok-ic ok-ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/></svg></div>
+      <h3 style="font-size:1.3rem">${t('ok_pending_title')}</h3>
+      <p style="color:var(--slate);font-size:.92rem;margin-top:4px">${t('ok_pending_sub')}</p>
       <div class="ticket-num">${num}</div>
       <div class="ticket-card">
         <div class="sum-row"><span>${t('sum_service')}</span><b>${c.label}</b></div>
-        ${req.isConsult?'':`<div class="sum-row"><span>${t('sum_priority')}</span><b>${t('prio_'+req.priority)}</b></div>`}
+        ${(req.isConsult||req.isPlan)?'':`<div class="sum-row"><span>${t('sum_priority')}</span><b>${t('prio_'+req.priority)}</b></div>`}
         <div class="sum-row"><span>${t('ok_status')}</span><b><span class="badge new">${t('ok_new')}</span></b></div>
-        <div class="sum-row"><span>${t('ok_payment')}</span><b><span class="badge paid">${t('ok_paid')}</span></b></div>
-        <div class="sum-row"><span>${t('sum_total')}</span><b>${money(c.total)}</b></div>
+        <div class="sum-row"><span>${t('ok_payment')}</span><b><span class="badge pending">${t('ok_awaiting')}</span></b></div>
+        <div class="sum-row"><span>${t('sum_total')}</span><b>${money(c.total)}${req.isPlan?' '+t('per_month'):''}</b></div>
       </div>
-      <p style="color:var(--slate);font-size:.82rem;margin-bottom:16px">${t('ok_email')}</p>
+      <p style="color:var(--slate);font-size:.82rem;margin-bottom:16px">${t('ok_after')}</p>
     </div>`;
   mFoot.innerHTML=`<button class="btn btn-back" id="doneBtn">${t('ok_done')}</button>
-    <a class="btn btn-green" href="${waLink}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z"/></svg>${t('ok_wa')}</a>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <a class="btn btn-outline" href="${link}" target="_blank" rel="noopener">${t('ok_openpay')}</a>
+      <a class="btn btn-green" href="${waLink}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.5A10 10 0 1 0 12 2z"/></svg>${t('ok_wa')}</a>
+    </div>`;
   document.getElementById('doneBtn').addEventListener('click',closeSupport);
 }
 
